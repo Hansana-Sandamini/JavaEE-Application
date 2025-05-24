@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Event Page</title>
+    <style>
+        body {
+            background-color: #e3e0e0;
+        }
+
+        table{
+            padding-top: 20px;
+            border-collapse: collapse;
+            display: grid;
+            justify-content: center;
+            align-items: center;
+        }
+
+        th,
+        td {
+            border: 3px solid black;
+            width: 20vw;
+            height: 4vw;
+            text-align: center;
+            font-size: 1.3rem;
+        }
+
+        th {
+            background-color: #3d61d2;
+            font-size: 1.7rem;
+            color: white;
+        }
+        button {
+            padding: 19px 28px;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            color: white;
+            background-color: black;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all ease-in-out 0.25s;
+            font-size: 18px !important;
+        }
+    </style>
+</head>
+<body>
+    <button id="ajax-btn">Load All Event Data</button>
+    <table id="eventTable">
+        <thead>
+        <tr>
+            <th id="eid">ID</th>
+            <th id="ename">Name</th>
+            <th id="edescription">Description</th>
+            <th id="edate">Date</th>
+            <th id="eplace">Place</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $("#ajax-btn").click(function () {
+                $.ajax({
+                    url: "http://localhost:8080/App1_Web_exploded/event",
+                    method: "GET",
+                    success: function (response) {
+                        console.log(response);
+                        const tbody = $('#eventTable tbody');
+                        tbody.empty();
+
+                        response.forEach(function(event) {
+
+                            tbody.append('<tr>' +
+                                '<td>' + event.eid + '</td>' +
+                                '<td>' + event.ename + '</td>' +
+                                '<td>' + event.edescription + '</td>' +
+                                '<td>' + event.edate + '</td>' +
+                                '<td>' + event.eplace + '</td>' +
+                                '</tr>'
+                            );
+                        });
+                    },
+                    error: function (error) {
+                        console.log(error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
