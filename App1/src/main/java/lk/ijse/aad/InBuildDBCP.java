@@ -1,6 +1,7 @@
 package lk.ijse.aad;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.Resource;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -9,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.dbcp2.BasicDataSource;
 
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -19,18 +21,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@WebServlet("/connectionpool")
-public class ConnectionPoolExampleServlet extends HttpServlet {
+@WebServlet("/inbuilddbcp")
+public class InBuildDBCP extends HttpServlet {
 
-    @Override
-    public void init() throws ServletException {
-    }
+    @Resource(name = "java:comp/env/jdbc/pool")
+    private DataSource ds;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
-            ServletContext servletContext = getServletContext();
-            BasicDataSource ds = (BasicDataSource) servletContext.getAttribute("ds");
             Connection connection = ds.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement("select * from event");
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -50,38 +49,6 @@ public class ConnectionPoolExampleServlet extends HttpServlet {
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-
-        ObjectMapper mapper = new ObjectMapper();
-        Map<String, String> event = mapper.readValue(req.getReader(), Map.class);
-
-        ServletContext servletContext = getServletContext();
-        BasicDataSource ds = (BasicDataSource) servletContext.getAttribute("ds");
-
-        try (Connection connection = ds.getConnection()) {
-            PreparedStatement ps = connection.prepareStatement("INSERT INTO event VALUES (?, ?, ?, ?, ?)");
-            ps.setString(1, event.get("eid"));
-            ps.setString(2, event.get("ename"));
-            ps.setString(3, event.get("edescription"));
-            ps.setString(4, event.get("edate"));
-            ps.setString(5, event.get("eplace"));
-
-            if (ps.executeUpdate() > 0) {
-                resp.setStatus(HttpServletResponse.SC_OK);
-                resp.getWriter().write("{\"data\":\"Successfully added event!\"}");
-            } else {
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                resp.getWriter().println("Something went wrong");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 }
